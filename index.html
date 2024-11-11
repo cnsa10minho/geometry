@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="kr">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +33,7 @@
     </style>
 </head>
 <body>
-    <h1>3차원 도형 선택, 이동 및 회전</h1>
+    <h1>3차원 도형 선택, 이동 및 회전 (선 색상 선택 가능)</h1>
     <div class="shape-buttons">
         <button onclick="createShape('cube')">정육면체</button>
         <button onclick="createShape('sphere')">구</button>
@@ -45,6 +45,12 @@
         <button onclick="createShape('tetrahedron')">정사면체</button>
     </div>
     <div class="controls">
+        <!-- 색상 선택기 -->
+        <div class="control-group">
+            <label>선 색상 선택:</label>
+            <input type="color" id="lineColor" value="#007bff" onchange="updateLineColor()">
+        </div>
+
         <!-- 이동 슬라이더 -->
         <div class="control-group">
             <label>X 축 이동:</label>
@@ -87,10 +93,10 @@
 
         camera.position.z = 5;
         let currentShape;
+        let materialColor = "#007bff"; // 기본 색상 설정
 
         // 도형 생성 함수
         function createShape(type) {
-            // 기존 도형이 있다면 제거
             if (currentShape) {
                 scene.remove(currentShape);
             }
@@ -122,9 +128,17 @@
                     geometry = new THREE.TetrahedronGeometry(1);
                     break;
             }
-            const material = new THREE.MeshBasicMaterial({ color: 0x007bff, wireframe: true });
+            const material = new THREE.MeshBasicMaterial({ color: materialColor, wireframe: true });
             currentShape = new THREE.Mesh(geometry, material);
             scene.add(currentShape);
+        }
+
+        // 색상 업데이트 함수
+        function updateLineColor() {
+            materialColor = document.getElementById("lineColor").value;
+            if (currentShape) {
+                currentShape.material.color.set(materialColor);
+            }
         }
 
         // 슬라이더 이벤트
