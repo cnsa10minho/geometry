@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3차원 도형 선택, 이동 및 회전</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; font-family: Arial, sans-serif; }
+        h1 { color: #333; }
+        canvas { margin-top: 20px; }
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .control-group { display: flex; align-items: center; gap: 10px; }
+        label { font-weight: bold; }
+        .shape-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        
+        /* 버튼 스타일 */
+        button {
+            padding: 8px 12px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        /* 버튼 호버 효과 */
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>3차원 도형 선택, 이동 및 회전</h1>
+    <div class="shape-buttons">
+        <button onclick="createShape('cube')">정육면체</button>
+        <button onclick="createShape('sphere')">구</button>
+        <button onclick="createShape('cone')">원뿔</button>
+        <button onclick="createShape('cylinder')">원기둥</button>
+        <button onclick="createShape('torus')">도넛</button>
+        <button onclick="createShape('dodecahedron')">십이면체</button>
+        <button onclick="createShape('octahedron')">팔면체</button>
+        <button onclick="createShape('tetrahedron')">정사면체</button>
+    </div>
+    <div class="controls">
+        <!-- 이동 슬라이더 -->
+        <div class="control-group">
+            <label>X 축 이동:</label>
+            <input type="range" id="xAxis" min="-5" max="5" step="0.1" value="0">
+        </div>
+        <div class="control-group">
+            <label>Y 축 이동:</label>
+            <input type="range" id="yAxis" min="-5" max="5" step="0.1" value="0">
+        </div>
+        <div class="control-group">
+            <label>Z 축 이동:</label>
+            <input type="range" id="zAxis" min="-5" max="5" step="0.1" value="0">
+        </div>
+        
+        <!-- 회전 슬라이더 -->
+        <div class="control-group">
+            <label>X 축 회전:</label>
+            <input type="range" id="rotateX" min="0" max="6.28" step="0.01" value="0">
+        </div>
+        <div class="control-group">
+            <label>Y 축 회전:</label>
+            <input type="range" id="rotateY" min="0" max="6.28" step="0.01" value="0">
+        </div>
+        <div class="control-group">
+            <label>Z 축 회전:</label>
+            <input type="range" id="rotateZ" min="0" max="6.28" step="0.01" value="0">
+        </div>
+    </div>
+    <canvas id="threeCanvas"></canvas>
+
+    <!-- Three.js 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js 기본 설정
+        const canvas = document.getElementById("threeCanvas");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas });
+        renderer.setSize(window.innerWidth * 0.8, window.innerHeight * 0.8);
+
+        camera.position.z = 5;
+        let currentShape;
+
+        // 도형 생성 함수
+        function createShape(type) {
+            // 기존 도형이 있다면 제거
+            if (currentShape) {
+                scene.remove(currentShape);
+            }
+
+            let geometry;
+            switch (type) {
+                case 'cube':
+                    geometry = new THREE.BoxGeometry();
+                    break;
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry(1, 32, 32);
+                    break;
+                case 'cone':
+                    geometry = new THREE.ConeGeometry(1, 2, 32);
+                    break;
+                case 'cylinder':
+                    geometry = new THREE.CylinderGeometry(1, 1, 2, 32);
+                    break;
+                case 'torus':
+                    geometry = new THREE.TorusGeometry(1, 0.3, 16, 100);
+                    break;
+                case 'dodecahedron':
+                    geometry = new THREE.DodecahedronGeometry(1);
+                    break;
+                case 'octahedron':
+                    geometry = new THREE.OctahedronGeometry(1);
+                    break;
+                case 'tetrahedron':
+                    geometry = new THREE.TetrahedronGeometry(1);
+                    break;
+            }
+            const material = new THREE.MeshBasicMaterial({ color: 0x007bff, wireframe: true });
+            currentShape = new THREE.Mesh(geometry, material);
+            scene.add(currentShape);
+        }
+
+        // 슬라이더 이벤트
+        document.getElementById("xAxis").addEventListener("input", updatePosition);
+        document.getElementById("yAxis").addEventListener("input", updatePosition);
+        document.getElementById("zAxis").addEventListener("input", updatePosition);
+
+        document.getElementById("rotateX").addEventListener("input", updateRotation);
+        document.getElementById("rotateY").addEventListener("input", updateRotation);
+        document.getElementById("rotateZ").addEventListener("input", updateRotation);
+
+        // 도형 위치 업데이트
+        function updatePosition() {
+            if (!currentShape) return;
+
+            const x = parseFloat(document.getElementById("xAxis").value);
+            const y = parseFloat(document.getElementById("yAxis").value);
+            const z = parseFloat(document.getElementById("zAxis").value);
+
+            currentShape.position.set(x, y, z);
+        }
+
+        // 도형 회전 업데이트
+        function updateRotation() {
+            if (!currentShape) return;
+
+            const rotateX = parseFloat(document.getElementById("rotateX").value);
+            const rotateY = parseFloat(document.getElementById("rotateY").value);
+            const rotateZ = parseFloat(document.getElementById("rotateZ").value);
+
+            currentShape.rotation.set(rotateX, rotateY, rotateZ);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
